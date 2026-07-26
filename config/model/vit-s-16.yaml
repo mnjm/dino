@@ -1,0 +1,18 @@
+name: "ViT-S-16"
+
+img_size: 224
+patch_size: 16
+embed_dim: 384
+n_layer: 12
+n_heads: 6
+mlp_ratio: 4
+
+drop_rate: 0.0
+attn_drop_rate: 0.0
+drop_path_rate: 0.1 # teacher's hardcoded to 0.0 in code
+
+proj_head_hidden_dim: 2048
+proj_head_bottleneck_dim: 256
+out_dim: 16384 # 65536 / 4, food101 dataset is considerably smaller than ImageNet and has 101 classes compared to ImageNet's 1000 classes
+
+img_chls: 3

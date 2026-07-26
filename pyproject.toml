@@ -1,0 +1,59 @@
+[project]
+name = "dino"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "datasets>=5.0.0",
+    "dotenv>=0.9.9",
+    "faiss-gpu>=1.14.3",
+    "hydra-core>=1.3.4",
+    "matplotlib>=3.11.1",
+    "numpy>=2.5.1",
+    "omegaconf>=2.3.1",
+    "pytz>=2026.3.post1",
+    "torch>=2.13.0",
+    "torchvision>=0.28.0",
+    "tqdm>=4.69.1",
+    "wandb>=0.28.1",
+]
+
+[tool.uv.sources]
+torch = [
+  { index = "pytorch-cpu", marker = "sys_platform != 'linux'" },
+  { index = "pytorch-cu129", marker = "sys_platform == 'linux'" },
+]
+torchvision = [
+  { index = "pytorch-cpu", marker = "sys_platform != 'linux'" },
+  { index = "pytorch-cu129", marker = "sys_platform == 'linux'" },
+]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[[tool.uv.index]]
+name = "pytorch-cu129"
+url = "https://download.pytorch.org/whl/cu129"
+explicit = true
+
+[dependency-groups]
+dev = [
+    "basedpyright>=1.39.9",
+    "ipykernel>=7.3.0",
+    "ruff>=0.16.0",
+]
+
+[tool.basedpyright]
+exclude = [".venv/", "**/*.ipynb"]
+typeCheckingMode = "standard"
+failOnWarnings = true
+reportAny = false
+reportExplicitAny = false
+reportPrivateImportUsage = false
+
+[tool.ruff]
+line-length = 120
+exclude = [ "*.ipynb", "**/*.ipynb", ".ipynb_checkpoints", ".venv/" ]

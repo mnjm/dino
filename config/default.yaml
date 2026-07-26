@@ -1,0 +1,83 @@
+defaults:
+    - model: vit-s-16
+    - _self_
+
+rng_seed: 42
+
+dataset: ethz/food101
+
+interactive: true
+
+n_epochs: 300
+clip_grad_norm_1: true
+freeze_last_layer_epoch: 1 # freeze last layer till this epoch
+
+global_crop_scale: [0.4, 1.0]
+local_crop_scale: [0.05, 0.4]
+n_global_crops: 2
+n_local_crops: 8
+
+student_temp_schedule:
+    type: constant
+    val: 0.1
+    mode: epochs # schedule is indexed by epoch
+
+teacher_temp_schedule:
+    type: linear
+    start_val: 0.04
+    end_val: 0.07
+    epochs: 30
+    mode: epochs # schedule is indexed by epoch
+
+momentum_schedule:
+    type: cosine
+    start_val: 0.996
+    end_val: 1.0
+    epochs: ${n_epochs}
+    mode: steps # convert epoch counts to optimizer steps
+
+center_momentum: 0.9 # teacher batch centering momentum
+
+init_from: scratch
+device_type: cuda
+torch_compile: true
+enable_fp32: true
+autocast_dtype: bf16
+save_every_epoch: 20
+wandb: false
+
+dataloader:
+    batch_size: 32
+    num_workers: 8
+    pin_memory: true
+    drop_last: true
+
+optimizer:
+    type: adamw
+    lr_schedule:
+        type: linear_cosine_constant
+        start_val: 0.0
+        max_val: 6.25e-5 # 5e-4 * batch_size / 256
+        min_val: 1e-6
+        linear_epochs: 30
+        cosine_epochs: 270 # (n_epochs - linear_epochs)
+        mode: steps # convert epoch counts to optimizer steps
+    weight_decay_schedule:
+        type: cosine
+        start_val: 0.04
+        end_val: 0.4
+        epochs: ${n_epochs}
+        mode: steps
+
+logging:
+    log_dir: ./logs
+    wandb:
+        enable: ${wandb}
+        project: dino
+
+hydra:
+    job:
+        name: ${model.name}-${now_ist:%d-%m-%y-%H%M%S}
+    run:
+        dir: ${logging.log_dir}/${hydra.job.name}
+    output_subdir: config
