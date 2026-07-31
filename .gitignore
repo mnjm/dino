@@ -11,4 +11,5 @@ wheels/
 dataset/
 logs/
 batch.png
-wandb
+wandb/
+eval_embeddings/
