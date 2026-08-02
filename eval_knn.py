@@ -32,7 +32,7 @@ def parse_args() -> Namespace:
     )
     parser.add_argument(
         "--nb-knn",
-        default=[10, 20, 100, 200],
+        default=[5, 10, 20, 100],
         nargs="+",
         type=int,
         help="Numbers of neighbors to use (default: 10 20 100 200).",
