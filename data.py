@@ -142,7 +142,10 @@ class DINOTransforms:
 
 
 def init_dataset(
-    cfg: DictConfig, split: str = "train", train_mode: bool = True
+    cfg: DictConfig,
+    split: str = "train",
+    train_mode: bool = True,
+    inp_res: tuple[int, int] | None = None,
 ) -> Dataset[tuple[list[torch.Tensor] | torch.Tensor, torch.Tensor]]:
     """Initialize a wrapped Hugging Face dataset.
 
@@ -150,6 +153,7 @@ def init_dataset(
         cfg: Configuration containing dataset and transform settings.
         split: Dataset split to load; ``train`` or ``validation``.
         train_mode: Whether to apply DINO multi-crop training transforms.
+        resolution: Optional ``(height, width)`` for validation image resizing.
 
     Returns:
         Dataset: Wrapped dataset that yields images or crops and labels.
@@ -161,12 +165,13 @@ def init_dataset(
     dataset = load_dataset(dataset_name, split=split, cache_dir=str(cache_dir))
     if not isinstance(dataset, HFDataset):
         raise TypeError(f"Expected a map-style dataset, got {type(dataset).__name__}")
+    inp_res = inp_res or (224, 224)
     transforms = (
         DINOTransforms(cfg)
         if train_mode
         else T.Compose(
             [
-                T.Resize((224, 224), interpolation=T.InterpolationMode.BICUBIC),
+                T.Resize(inp_res, interpolation=T.InterpolationMode.BICUBIC),
                 T.ToDtype(torch.float32, scale=True),
                 T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
             ]

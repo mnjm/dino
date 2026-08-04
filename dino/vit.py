@@ -180,6 +180,25 @@ class ViTBlock(nn.Module):
         x = x + self.drop_path_mlp(self.mlp(self.norm2(x)))  # residual with stocastic drop path regularizer
         return x
 
+    def get_attn(self, x: torch.Tensor) -> torch.Tensor:
+        """Return this block's per-head self-attention weights.
+
+        Args:
+            x: Token embeddings with shape ``(B, N, dim)``.
+
+        Returns:
+            torch.Tensor: Attention weights with shape ``(B, n_heads, N, N)``.
+        """
+        norm_x = self.norm1(x)
+        _, attn = self.attn(
+            norm_x,
+            norm_x,
+            norm_x,
+            need_weights=True,
+            average_attn_weights=False,
+        )
+        return attn
+
 
 class ViT(nn.Module):
     """Vision Transformer"""
@@ -287,6 +306,32 @@ class ViT(nn.Module):
         assert pos_embed.shape[1] == n_tgt_patches
         return torch.cat([self.pos_embed[:, :1, :], pos_embed], dim=1)  # add cls token back
 
+    def _prepare_tokens(self, imgs: torch.Tensor) -> torch.Tensor:
+        """Embed images and add CLS and positional tokens."""
+        B, _, H, W = imgs.shape
+        x = self.patch_embed(imgs)  # (B, num_patches, embed_dim)
+        cls_tokens = self.cls_token.expand(B, -1, -1)  # (B, 1, embed_dim)
+        x = torch.cat((cls_tokens, x), dim=1)  # prepend [CLS]
+        x = x + self.interpolate_pos_embed(x, H, W)
+        return self.pos_drop(x)
+
+    def get_final_layer_attn(self, imgs: torch.Tensor) -> torch.Tensor:
+        """Return per-head self-attention weights from the final transformer block.
+
+        Args:
+            imgs: Input image tensor with shape ``(B, C, H, W)``.
+
+        Returns:
+            torch.Tensor: Attention weights with shape
+                ``(B, n_heads, 1 + num_patches, 1 + num_patches)``.
+        """
+        x = self._prepare_tokens(imgs)
+        for blk in self.blocks[:-1]:
+            x = blk(x)
+        final_block = self.blocks[-1]
+        assert isinstance(final_block, ViTBlock)
+        return final_block.get_attn(x)
+
     def forward(self, imgs: torch.Tensor) -> torch.Tensor:
         """Run the model over image batches.
 
@@ -297,12 +342,7 @@ class ViT(nn.Module):
             torch.Tensor: Classification logits with shape ``(B, n_class)`` when a
                 head exists; otherwise CLS embeddings with shape ``(B, embed_dim)``.
         """
-        B, _, H, W = imgs.shape
-        x = self.patch_embed(imgs)  # (B, num_patches, embed_dim)
-        cls_tokens = self.cls_token.expand(B, -1, -1)  # (B, 1, embed_dim)
-        x = torch.cat((cls_tokens, x), dim=1)  # prepend [CLS]
-        x = x + self.interpolate_pos_embed(x, H, W)
-        x = self.pos_drop(x)
+        x = self._prepare_tokens(imgs)
 
         for blk in self.blocks:
             x = blk(x)

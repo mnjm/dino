@@ -123,6 +123,18 @@ class Model(nn.Module):
         """
         return self.proj_head(self.forward_features(x))
 
+    def get_final_layer_attn(self, x: torch.Tensor) -> torch.Tensor:
+        """Return per-head attention weights from the ViT's final transformer block.
+
+        Args:
+            x: Image batch with shape ``(B, C, H, W)``.
+
+        Returns:
+            torch.Tensor: Attention weights with shape
+                ``(B, n_heads, 1 + num_patches, 1 + num_patches)``.
+        """
+        return self.vit.get_final_layer_attn(x)
+
     def cancel_grad_last_layer(self) -> None:
         """Clear projection-head final-layer gradients before an optimizer step."""
         self.proj_head.cancel_grad_last_layer()

@@ -13,7 +13,9 @@ Weighted k-NN evaluation on Food-101 validation features:
 | 20 | 67.59% | 86.17% |
 | 100 | 67.81% | 88.72% |
 
-The exported ViT backbone is published at [mnjm/DINOv1-ViT-S-16-food101](https://huggingface.co/mnjm/DINOv1-ViT-S-16-food101).
+The exported ViT backbone is published at [here](https://huggingface.co/mnjm/DINOv1-ViT-S-16-food101).
+
+![Attention heat map](https://raw.githubusercontent.com/mnjm/dino/refs/heads/assets/attn.png)
 
 ## Structure
 
