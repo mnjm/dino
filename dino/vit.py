@@ -299,9 +299,7 @@ class ViT(nn.Module):
         pos_embed = self.pos_embed[:, 1:, :]  # remove cls token  (1, n_patches, embed_dim)
         pos_embed = pos_embed.reshape(1, grid_size, grid_size, embed_dim)
         pos_embed = pos_embed.permute(0, 3, 1, 2)  # (1, embed_dim, grid_size, grid_size)
-        pos_embed = F.interpolate(
-            pos_embed, size=(tgt_grid_h, tgt_grid_w), mode="bicubic", align_corners=False
-        )  # (1, embed_dim, tgt_grid_h, tgt_grid_w)
+        pos_embed = F.interpolate(pos_embed, size=(tgt_grid_h, tgt_grid_w), mode="bicubic", align_corners=False)  # (1, embed_dim, tgt_grid_h, tgt_grid_w)
         pos_embed = pos_embed.permute(0, 2, 3, 1).reshape(1, -1, embed_dim)  # (1, tgt_grid_h * tgt_grid_w, embed_dim)
         assert pos_embed.shape[1] == n_tgt_patches
         return torch.cat([self.pos_embed[:, :1, :], pos_embed], dim=1)  # add cls token back

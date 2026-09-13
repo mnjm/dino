@@ -50,12 +50,58 @@ dev = [
 
 [tool.basedpyright]
 exclude = [".venv/", "**/*.ipynb"]
+venvPath = "."
+venv = ".venv"
+pythonVersion = "3.12"
 typeCheckingMode = "standard"
+useLibraryCodeForTypes = true
 failOnWarnings = true
+# Don't require exhaustive typing
 reportAny = false
 reportExplicitAny = false
+reportUnknownVariableType = false
+reportUnknownParameterType = false
+reportUnknownArgumentType = false
+reportUnknownMemberType = false
+reportMissingParameterType = false
+reportMissingTypeArgument = false
+reportMissingTypeStubs = false
+# Relax rules that often get in the way in ML code
 reportPrivateImportUsage = false
+# Keep useful diagnostics
+reportMissingImports = true
+reportUnusedImport = true
+reportUnusedVariable = "warning"
+reportUnnecessaryCast = "warning"
+reportUnnecessaryIsInstance = "warning"
 
 [tool.ruff]
-line-length = 120
+line-length = 300 # effectively no line length
 exclude = [ "*.ipynb", "**/*.ipynb", ".ipynb_checkpoints", ".venv/" ]
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle
+    "F",    # pyflakes
+    "I",    # import sorting
+    "B",    # flake8-bugbear
+    "UP",   # pyupgrade
+    "SIM",  # simplify
+]
+
+ignore = [
+    "E501",     # let formatter handle line length
+    "E741",     # allow l, O, I variable names if desired
+    "B008",     # allow function calls in defaults
+]
+
+[tool.ruff.lint.isort]
+combine-as-imports = true
+force-single-line = false
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
+docstring-code-format = true
+skip-magic-trailing-comma = false

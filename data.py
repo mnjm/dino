@@ -8,8 +8,7 @@ from typing import cast
 import matplotlib.pyplot as plt
 import torch
 import torchvision.transforms.v2 as T
-from datasets import Dataset as HFDataset
-from datasets import load_dataset
+from datasets import Dataset as HFDataset, load_dataset
 from omegaconf import DictConfig, OmegaConf
 from PIL.Image import Image as PILImage
 from torch.utils.data import DataLoader, Dataset
@@ -163,8 +162,6 @@ def init_dataset(
     cache_dir.mkdir(parents=True, exist_ok=True)
     assert split in ("train", "validation")
     dataset = load_dataset(dataset_name, split=split, cache_dir=str(cache_dir))
-    if not isinstance(dataset, HFDataset):
-        raise TypeError(f"Expected a map-style dataset, got {type(dataset).__name__}")
     inp_res = inp_res or (224, 224)
     transforms = (
         DINOTransforms(cfg)
@@ -220,7 +217,6 @@ def plot_batch(
     """
     crops, labels = batch
     crop_batches = [crops] if isinstance(crops, torch.Tensor) else list(crops)
-    labels = cast(torch.Tensor, labels)
 
     batch_size = crop_batches[0].shape[0]
     n_samples = min(n_samples, batch_size)

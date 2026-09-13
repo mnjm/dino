@@ -66,7 +66,7 @@ def torch_compile_ckpt_fix(state_dict: MutableMapping[str, torch.Tensor]) -> Mut
     """
     # when torch.compiled a model, state_dict is updated with a prefix '_orig_mod.', renaming this
     unwanted_prefix = "_orig_mod."
-    for k, v in list(state_dict.items()):
+    for k, _v in list(state_dict.items()):
         if k.startswith(unwanted_prefix):
             state_dict[k[len(unwanted_prefix) :]] = state_dict.pop(k)
     return state_dict
@@ -118,9 +118,7 @@ def cosine_scheduler(start_val: float, end_val: float, steps: int, total_steps: 
     return lambda current_step: float(schedule[current_step])
 
 
-def linear_cosine_constant_scheduler(
-    start_val: float, max_val: float, min_val: float, total_steps: int, linear_steps: int, cosine_steps: int
-) -> Callable[[int], float]:
+def linear_cosine_constant_scheduler(start_val: float, max_val: float, min_val: float, total_steps: int, linear_steps: int, cosine_steps: int) -> Callable[[int], float]:
     """Create a linear warmup, cosine decay, then constant schedule.
 
     Args:
@@ -134,12 +132,8 @@ def linear_cosine_constant_scheduler(
     Returns:
         Callable[[int], float]: Function that returns the value at a step.
     """
-    assert linear_steps + cosine_steps <= total_steps, (
-        f"linear_steps + cosine_steps must be <= total_steps, got {linear_steps + cosine_steps} vs {total_steps}"
-    )
-    linear_schedule = np.linspace(start_val, max_val, linear_steps + 1)[
-        1:
-    ]  # so that first value > min_val (in case min_val == 0)
+    assert linear_steps + cosine_steps <= total_steps, f"linear_steps + cosine_steps must be <= total_steps, got {linear_steps + cosine_steps} vs {total_steps}"
+    linear_schedule = np.linspace(start_val, max_val, linear_steps + 1)[1:]  # so that first value > min_val (in case min_val == 0)
     cosine_schedule = _cosine_scheduler(max_val, min_val, cosine_steps)
     constant_schedule = np.full(total_steps - linear_steps - cosine_steps, min_val)
     schedule = np.concatenate([linear_schedule, cosine_schedule, constant_schedule])
@@ -266,15 +260,5 @@ def format_metrics(metrics: dict[str, float], epoch: int, n_epochs: int) -> str:
     Returns:
         str: Single-line metric summary.
     """
-    metric_text = " ".join(
-        f"{key}={value:.2e}"
-        if "lr" in key.lower()
-        else f"{key}={value:.2%}"
-        if "acc" in key.lower()
-        else f"{key}={value / 60:.2f}m"
-        if "time" in key.lower()
-        else f"{key}={value:.4f}"
-        for key, value in metrics.items()
-        if key != "epoch"
-    )
+    metric_text = " ".join(f"{key}={value:.2e}" if "lr" in key.lower() else f"{key}={value:.2%}" if "acc" in key.lower() else f"{key}={value / 60:.2f}m" if "time" in key.lower() else f"{key}={value:.4f}" for key, value in metrics.items() if key != "epoch")
     return f"Epoch {epoch}/{n_epochs} {metric_text}"

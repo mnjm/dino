@@ -141,9 +141,7 @@ def generate_index_and_embeddings(ckpt_path: Path | None, save_dir: Path):
     else:
         index = cpu_index
     train_dataset = init_dataset(cfg, split="train", train_mode=False)
-    train_dataloader = cast(
-        DataLoader[tuple[torch.Tensor, torch.Tensor]], init_dataloader(train_dataset, cfg, train_mode=False)
-    )
+    train_dataloader = cast(DataLoader[tuple[torch.Tensor, torch.Tensor]], init_dataloader(train_dataset, cfg, train_mode=False))
     batch_size = cast(int, train_dataloader.batch_size)
     pin_memory = device.type == "cuda" and train_dataloader.pin_memory
     progress_bar = tqdm(train_dataloader, desc="Building train index", dynamic_ncols=True, leave=False)
@@ -156,9 +154,7 @@ def generate_index_and_embeddings(ckpt_path: Path | None, save_dir: Path):
 
     # Extract validation embeddings and labels.
     val_dataset = init_dataset(cfg, split="validation", train_mode=False)
-    val_dataloader = cast(
-        DataLoader[tuple[torch.Tensor, torch.Tensor]], init_dataloader(val_dataset, cfg, train_mode=False)
-    )
+    val_dataloader = cast(DataLoader[tuple[torch.Tensor, torch.Tensor]], init_dataloader(val_dataset, cfg, train_mode=False))
     pin_memory = device.type == "cuda" and val_dataloader.pin_memory
     progress_bar = tqdm(val_dataloader, desc="Evaluating", dynamic_ncols=True, leave=False)
     val_embeddings: list[torch.Tensor] = []

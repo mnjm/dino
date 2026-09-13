@@ -13,6 +13,7 @@ from data import init_dataset
 from dino import Model, ModelConfig
 from utils import torch_compile_ckpt_fix, torch_get_device
 
+
 def parse_args() -> Namespace:
     """Parse attention visualization arguments.
 
@@ -79,15 +80,16 @@ def main(args: Namespace) -> None:
 
     imgs = torch.empty(n_samples, 3, *res)
     for idx in range(n_samples):
-        imgs[idx, ...] = dataset[idx][0]
+        image, _ = dataset[idx]
+        if not isinstance(image, torch.Tensor):
+            raise TypeError("Validation dataset must return one image per sample")
+        imgs[idx, ...] = image
 
     imgs = imgs.to(device)
     attn = model.get_final_layer_attn(imgs)[:, :, 0, 1:]
     n_heads = attn.shape[1]
     h_patches, w_patches = res[0] // patch_size, res[1] // patch_size
-    assert h_patches * w_patches == attn.shape[-1], (
-        f"Unexpected attention shape: {attn.shape=}, {h_patches=}, {w_patches=}"
-    )
+    assert h_patches * w_patches == attn.shape[-1], f"Unexpected attention shape: {attn.shape=}, {h_patches=}, {w_patches=}"
     attn = attn.reshape(n_samples * n_heads, 1, h_patches, w_patches)
     attn = F.interpolate(attn, size=res, mode="nearest")
     attn = attn.view(n_samples, n_heads, *res).cpu()

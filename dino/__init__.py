@@ -145,12 +145,17 @@ class Model(nn.Module):
         Returns:
             str: Full-model, ViT, and head parameter counts, in millions
         """
-        params_count = lambda m: sum(p.numel() for p in m.parameters()) / 1e6
-        params_count_grad = lambda m: sum(p.numel() for p in m.parameters() if p.requires_grad) / 1e6
+
+        def params_count(module: nn.Module) -> float:
+            return sum(parameter.numel() for parameter in module.parameters()) / 1e6
+
+        def trainable_params_count(module: nn.Module) -> float:
+            return sum(parameter.numel() for parameter in module.parameters() if parameter.requires_grad) / 1e6
+
         params = [
-            ("Total", params_count(self), params_count_grad(self)),
-            ("ViT", params_count(self.vit), params_count_grad(self.vit)),
-            ("Head", params_count(self.proj_head), params_count_grad(self.proj_head)),
+            ("Total", params_count(self), trainable_params_count(self)),
+            ("ViT", params_count(self.vit), trainable_params_count(self.vit)),
+            ("Head", params_count(self.proj_head), trainable_params_count(self.proj_head)),
         ]
         return " | ".join(f"{name}: {total:.2f}M trainable: {trainable:.2f}M" for name, total, trainable in params)
 
@@ -308,7 +313,7 @@ def ema_update_teacher(teacher: Model, student: Model, alpha: float) -> None:
         student: Model providing the current parameter values.
         alpha: Weight assigned to each existing teacher parameter.
     """
-    for teacher_param, student_param in zip(teacher.parameters(), student.parameters()):
+    for teacher_param, student_param in zip(teacher.parameters(), student.parameters(), strict=True):
         teacher_param.data.mul_(alpha).add_((1 - alpha) * student_param.data)
 
 

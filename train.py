@@ -126,11 +126,7 @@ def main(cfg: DictConfig) -> None:
         torch.set_float32_matmul_precision("high")
         torch.backends.cuda.matmul.allow_tf32 = True
 
-    auto_ctx = (
-        torch.amp.autocast(device_type=device.type, dtype=torch_autocast_dtype)
-        if device.type == "cuda" and torch_autocast_dtype == torch.bfloat16
-        else nullcontext()
-    )
+    auto_ctx = torch.amp.autocast(device_type=device.type, dtype=torch_autocast_dtype) if device.type == "cuda" and torch_autocast_dtype == torch.bfloat16 else nullcontext()
 
     save_every_epoch = cfg.save_every_epoch
     non_blocking = device.type == "cuda" and bool(dataloader.pin_memory)
@@ -144,9 +140,7 @@ def main(cfg: DictConfig) -> None:
         loss_cum = 0.0
         t_start = time()
         lr, weight_decay, momentum = 0.0, 0.0, 0.0  # placeholders
-        progress_bar = tqdm(
-            dataloader, dynamic_ncols=True, leave=False, disable=(not cfg.interactive), desc=f"Epoch {epoch}/{n_epochs}"
-        )
+        progress_bar = tqdm(dataloader, dynamic_ncols=True, leave=False, disable=(not cfg.interactive), desc=f"Epoch {epoch}/{n_epochs}")
         student_temp = torch.tensor(student_temp_scheduler(epoch - 1), device=device)
         teacher_temp = torch.tensor(teacher_temp_scheduler(epoch - 1), device=device)
         for step, (images, _) in enumerate(progress_bar):
