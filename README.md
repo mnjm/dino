@@ -2,7 +2,7 @@
 
 A minimal implementation of [DINO](https://arxiv.org/pdf/2104.14294) self-supervised learning with a ViT-S/16 backbone. Trained from scratch and evaluated on the [Food-101](https://huggingface.co/datasets/ethz/food101) dataset.
 
-## Evaluation
+## Evaluation results
 
 Weighted k-NN evaluation on Food-101 validation features:
 
@@ -12,6 +12,8 @@ Weighted k-NN evaluation on Food-101 validation features:
 | 10 | 66.38% | 83.47% |
 | 20 | 67.59% | 86.17% |
 | 100 | 67.81% | 88.72% |
+
+A linear classification head with a frozen backbone reaches 74.0% top-1 accuracy and 92.5% top-5 accuracy.
 
 The exported ViT backbone is published at [here](https://huggingface.co/mnjm/DINOv1-ViT-S-16-food101).
 

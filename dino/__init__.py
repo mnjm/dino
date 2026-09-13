@@ -135,6 +135,18 @@ class Model(nn.Module):
         """
         return self.vit.get_final_layer_attn(x)
 
+    def get_intermediate_layers(self, x: torch.Tensor, n: int) -> list[torch.Tensor]:
+        """Return token outputs from the final ``n`` ViT transformer blocks.
+
+        Args:
+            x: Image batch with shape ``(B, C, H, W)``.
+            n: Number of final transformer blocks to return.
+
+        Returns:
+            Token sequences from the final ``n`` blocks.
+        """
+        return self.vit.get_intermediate_layers(x, n)
+
     def cancel_grad_last_layer(self) -> None:
         """Clear projection-head final-layer gradients before an optimizer step."""
         self.proj_head.cancel_grad_last_layer()

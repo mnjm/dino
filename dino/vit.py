@@ -330,6 +330,28 @@ class ViT(nn.Module):
         assert isinstance(final_block, ViTBlock)
         return final_block.get_attn(x)
 
+    def get_intermediate_layers(self, imgs: torch.Tensor, n: int) -> list[torch.Tensor]:
+        """Return normalized token outputs from the final ``n`` transformer blocks.
+
+        Args:
+            imgs: Input image batch with shape ``(B, C, H, W)``.
+            n: Number of final transformer blocks to return.
+
+        Returns:
+            Token sequences from the final ``n`` blocks, each with shape
+            ``(B, 1 + num_patches, embed_dim)``.
+        """
+        if not 1 <= n <= len(self.blocks):
+            raise ValueError(f"n must be between 1 and {len(self.blocks)}, got {n}")
+
+        x = self._prepare_tokens(imgs)
+        intermediate_outputs: list[torch.Tensor] = []
+        for block_idx, block in enumerate(self.blocks):
+            x = block(x)
+            if block_idx >= len(self.blocks) - n:
+                intermediate_outputs.append(self.norm(x))
+        return intermediate_outputs
+
     def forward(self, imgs: torch.Tensor) -> torch.Tensor:
         """Run the model over image batches.
 
